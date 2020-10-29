@@ -38,3 +38,7 @@ Usage of ./Monkey_macos_amd64:
   -v string
     	指定-sV详细程度0-9 (default "0")
 ```
+
+## 效果
+
+  ![效果图](/img/img1.png)
