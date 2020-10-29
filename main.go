@@ -488,7 +488,7 @@ func FastHTTP(url string) string {
 	}
 	if response.StatusCode() == 301 || response.StatusCode() == 302 {
 		peek := response.Header.Peek("Location")
-		if string(peek)[:4] != "http" {
+		if !strings.HasSuffix(string(peek),"http") {
 			if strings.Split(url, ":")[1] == "80" {
 				return strconv.Itoa(response.StatusCode()) + " " + "http://" + strings.Split(url, ":")[0]
 			} else {
@@ -521,7 +521,7 @@ func FastHTTPS(url string) string {
 	}
 	if response.StatusCode() == 301 || response.StatusCode() == 302 {
 		peek := response.Header.Peek("Location")
-		if string(peek)[:4] != "http" {
+		if !strings.HasSuffix(string(peek),"http") {
 			if strings.Split(url, ":")[1] == "443" {
 				return strconv.Itoa(response.StatusCode()) + " " + "https://" + strings.Split(url, ":")[0]
 			} else {
