@@ -41,4 +41,4 @@ Usage of ./Monkey_macos_amd64:
 
 ## 效果
 
-  ![效果图](/img/img1.png)
+  ![效果图](/img/img2.png)
