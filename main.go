@@ -28,7 +28,6 @@ var (
 	thread     int
 	alive      []string
 	version    string
-	portthread int
 	masscaner  bool
 	alllink    []string
 	file string
@@ -52,7 +51,6 @@ func init() {
 	}
 	flag.StringVar(&ips, "i", "", "指定IP")
 	flag.IntVar(&thread, "t", 50, "指定线程,默认50")
-	flag.IntVar(&portthread, "p", 5, "指定端口扫描线程,默认50")
 	flag.StringVar(&version, "v", "0", "指定-sV详细程度0-9")
 	flag.BoolVar(&masscaner, "m", false, "指定是否使用masscan进行端口扫描")
 	flag.StringVar(&file, "f", "", "从文件中获取IP")
@@ -361,7 +359,7 @@ func TCPScan(wait *sync.WaitGroup, ipchan chan string) {
 
 func TPortScan(ip string) []string {
 	ret := []string{}
-	port_thread := portthread
+	port_thread := 771
 	runtime.GOMAXPROCS(runtime.NumCPU() / 4 * 3)
 	var wait = sync.WaitGroup{}
 	ports := make(chan string, 60000)
@@ -388,6 +386,7 @@ func TPortScan(ip string) []string {
 			}
 			bufsnake <- 1
 		}(i*(65535/port_thread), (i+1)*(65535/port_thread))
+		<-time.After(1 * time.Second / 10)
 	}
 	for i := 0; i < port_thread; i++ {
 		<-bufsnake
@@ -420,12 +419,13 @@ func MPortScan(ip string) string {
 }
 
 func IsOpenTCP(IpAddr, Port string) bool {
-	conn, err := net.DialTimeout("tcp", IpAddr+":"+Port, time.Second*1/10)
+	conn, err := net.DialTimeout("tcp", IpAddr+":"+Port, time.Second*1)
 	if err != nil {
 		//color.Red(err.Error())
 		return false
 	}
 	conn.Close()
+	<-time.After(1 * time.Second / 5)
 	return true
 }
 
