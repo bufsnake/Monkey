@@ -25,14 +25,13 @@
 ## Usage
 
 ```bash
-Usage of ./Monkey_macos_amd64:
+└> ./Monkey -h
+Usage of ./Monkey:
   -f string
     	从文件中获取IP
   -i string
     	指定IP
   -m	指定是否使用masscan进行端口扫描
-  -p int
-    	指定端口扫描线程,默认50 (default 5)
   -t int
     	指定线程,默认50 (default 50)
   -v string
