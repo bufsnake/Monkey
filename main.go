@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufsnake.com/parseip"
+	"github.com/bufsnake/parseip"
 	"crypto/tls"
 	"flag"
 	"fmt"
