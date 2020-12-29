@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bufsnake/parseip"
+    "github.com/bufsnake/parseip"
 	"crypto/tls"
 	"flag"
 	"fmt"
@@ -27,10 +27,13 @@ var (
 	ips        string
 	thread     int
 	alive      []string
+	alive_lock sync.Mutex
 	version    string
+	portthread int
 	masscaner  bool
 	alllink    []string
-	file string
+	file       string
+	nmapalive bool
 	lock       sync.Mutex
 )
 
@@ -51,9 +54,11 @@ func init() {
 	}
 	flag.StringVar(&ips, "i", "", "指定IP")
 	flag.IntVar(&thread, "t", 50, "指定线程,默认50")
+	flag.IntVar(&portthread, "p", 5, "指定端口扫描线程,默认50")
 	flag.StringVar(&version, "v", "0", "指定-sV详细程度0-9")
 	flag.BoolVar(&masscaner, "m", false, "指定是否使用masscan进行端口扫描")
 	flag.StringVar(&file, "f", "", "从文件中获取IP")
+	flag.BoolVar(&nmapalive, "nmap-alive", false, "是否使用nmap进行探活")
 	flag.Parse()
 	if ips == "" && file == "" {
 		flag.Usage()
@@ -80,7 +85,7 @@ func main() {
 			}
 			temp := parseip.ParseIP(val)
 			for _, temp_val := range temp {
-				if !Exist(ip,temp_val) {
+				if !Exist(ip, temp_val) {
 					ip = append(ip, temp_val)
 				}
 			}
@@ -91,7 +96,7 @@ func main() {
 	color.Yellow("Start to scan alive")
 	start = time.Now()
 	emoji.Println(":waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon::waning_crescent_moon:")
-	Scan(ip, len(ip), thread)
+	Scan(ip, len(ip), 50)
 	emoji.Println(":last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon:")
 	emoji.Println(":beer: " + strconv.Itoa(len(alive)) + " alive\n:beer: time " + (time.Now().Sub(start)).String())
 	color.Yellow("Start to scan service")
@@ -99,13 +104,13 @@ func main() {
 	emoji.Println(":last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon::last_quarter_moon:")
 	ServiceScan()
 	emoji.Println(":waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon:")
-	emoji.Println(":beer: "+time.Now().Sub(now).String())
+	emoji.Println(":beer: " + time.Now().Sub(now).String())
 	color.Yellow("Start to scan web")
 	now = time.Now()
 	emoji.Println(":waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon::waning_gibbous_moon:")
 	WebScan()
 	emoji.Println(":full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon::full_moon:")
-	emoji.Println(":beer: "+time.Now().Sub(now).String())
+	emoji.Println(":beer: " + time.Now().Sub(now).String())
 }
 
 func WebScan() {
@@ -131,22 +136,22 @@ func WebScan() {
 	WebWait.Wait()
 }
 
-func Scan(iplist []string, iplistlen, thread int) {
+func Scan(iplist []string, iplistlen, threads int) {
 	var SurviveWait sync.WaitGroup
 	ipchan := make(chan string, 30000)
 	DistributionIPWait := make(chan int)
-	for i := 0; i < iplistlen; i += thread {
-		if i+thread > iplistlen {
+	for i := 0; i < iplistlen; i += threads {
+		if i+threads > iplistlen {
 			go DistributionIP(iplist[i:iplistlen], ipchan, DistributionIPWait)
 			break
 		}
-		go DistributionIP(iplist[i:i+thread], ipchan, DistributionIPWait)
+		go DistributionIP(iplist[i:i+threads], ipchan, DistributionIPWait)
 	}
-	for i := 0; i < thread; i++ {
+	for i := 0; i < threads; i++ {
 		SurviveWait.Add(1)
 		go Survive(&SurviveWait, ipchan)
 	}
-	for i := 0; i < iplistlen; i += thread {
+	for i := 0; i < iplistlen; i += threads {
 		<-DistributionIPWait
 	}
 	close(ipchan)
@@ -195,20 +200,60 @@ func DistributionIP(iplist []string, ipchan chan string, finishflag chan int) {
 func Survive(wait *sync.WaitGroup, ipchan chan string) {
 	defer wait.Done()
 	for ip := range ipchan {
-		if PingSurvive(ip) == 1 {
+		if !nmapalive {
+			alive_lock.Lock()
+			alive = append(alive, ip)
+			alive_lock.Unlock()
+		} else if SNSurvive(ip) == 1 {
+			alive_lock.Lock()
 			color.Green(ip)
 			alive = append(alive, ip)
+			alive_lock.Unlock()
+		} else if PingSurvive(ip) == 1 {
+			alive_lock.Lock()
+			color.Green(ip)
+			alive = append(alive, ip)
+			alive_lock.Unlock()
 		} else if ICMPSurvive(ip) == 1 {
+			alive_lock.Lock()
 			alive = append(alive, ip)
 			color.Green(ip)
-		} else if PMSurvive(ip) == 1 {
-			alive = append(alive, ip)
-			color.Green(ip)
+			alive_lock.Unlock()
 		} else if ARPSurvive(ip) == 1 {
+			alive_lock.Lock()
 			alive = append(alive, ip)
 			color.Green(ip)
+			alive_lock.Unlock()
+		} else if PMSurvive(ip) == 1 {
+			alive_lock.Lock()
+			alive = append(alive, ip)
+			color.Green(ip)
+			alive_lock.Unlock()
 		}
 	}
+}
+
+func SNSurvive(ip string) int {
+	scanner, err := nmap.NewScanner(
+		nmap.WithCustomArguments("-sn"),
+		nmap.WithCustomArguments("-n"),
+		nmap.WithCustomArguments(ip),
+	)
+	if err != nil {
+		color.Red(ip + " " + err.Error())
+		return 0
+	}
+	run, _, err := scanner.Run()
+	if err != nil {
+		color.Red(ip + " " + err.Error())
+		return 0
+	}
+	if len(run.Hosts) != 0 {
+		if run.Hosts[0].Status.State == "up" {
+			return 1
+		}
+	}
+	return 0
 }
 
 func PingSurvive(ip string) int {
@@ -341,9 +386,9 @@ func TCPScan(wait *sync.WaitGroup, ipchan chan string) {
 			for _, ports := range hosts.Ports {
 				link := ""
 				if strings.Contains(ports.Service.Name, "http") || strings.Contains(ports.Service.Name, "tcpwrapped") || strings.Contains(ports.Service.Name, "caldav") || strings.Contains(ports.Service.Name, "sip") || strings.Contains(ports.Service.Name, "rtsp") || strings.Contains(ports.Service.Name, "soap") {
-					link = ip + ":" + strconv.Itoa(int(ports.ID))
+					link := ">>> WEB <<<"
 					lock.Lock()
-					alllink = append(alllink, link)
+					alllink = append(alllink, ip+":"+strconv.Itoa(int(ports.ID)))
 					lock.Unlock()
 					fmt.Println(version, fmt.Sprintf("%-4s", ports.Protocol), fmt.Sprintf("%-15s", ip), fmt.Sprintf("%-5d", ports.ID), fmt.Sprintf("%-25s", ports.Service.Name), fmt.Sprintf("%-70s", strings.Trim(ports.Service.Product+" "+ports.Service.Version, " ")), fmt.Sprintf("%s", link))
 				} else {
@@ -359,7 +404,7 @@ func TCPScan(wait *sync.WaitGroup, ipchan chan string) {
 
 func TPortScan(ip string) []string {
 	ret := []string{}
-	port_thread := 771
+	port_thread := portthread
 	runtime.GOMAXPROCS(runtime.NumCPU() / 4 * 3)
 	var wait = sync.WaitGroup{}
 	ports := make(chan string, 60000)
@@ -386,7 +431,6 @@ func TPortScan(ip string) []string {
 			}
 			bufsnake <- 1
 		}(i*(65535/port_thread), (i+1)*(65535/port_thread))
-		<-time.After(1 * time.Second / 10)
 	}
 	for i := 0; i < port_thread; i++ {
 		<-bufsnake
@@ -419,13 +463,12 @@ func MPortScan(ip string) string {
 }
 
 func IsOpenTCP(IpAddr, Port string) bool {
-	conn, err := net.DialTimeout("tcp", IpAddr+":"+Port, time.Second*1)
+	conn, err := net.DialTimeout("tcp", IpAddr+":"+Port, time.Second*1/10)
 	if err != nil {
 		//color.Red(err.Error())
 		return false
 	}
 	conn.Close()
-	<-time.After(1 * time.Second / 5)
 	return true
 }
 
@@ -433,17 +476,17 @@ func IsOpenTCP(IpAddr, Port string) bool {
 func IsOpenPcap(IpAddr, Port string) bool {
 	en0, err := net.InterfaceByName("en3")
 	if err != nil {
-		color.Red("network interface error "+err.Error())
+		color.Red("network interface error " + err.Error())
 		os.Exit(1)
 	}
 	addrs, err := en0.Addrs()
 	if err != nil {
-		color.Red("network interface error "+err.Error())
+		color.Red("network interface error " + err.Error())
 		os.Exit(1)
 	}
-	SrcIP := net.ParseIP(strings.Split(addrs[1].String(),"/")[0])
+	SrcIP := net.ParseIP(strings.Split(addrs[1].String(), "/")[0])
 	DstIP := net.ParseIP(IpAddr)
-	fmt.Println(SrcIP,DstIP)
+	fmt.Println(SrcIP, DstIP)
 	return false
 }
 
@@ -488,7 +531,7 @@ func FastHTTP(url string) string {
 	}
 	if response.StatusCode() == 301 || response.StatusCode() == 302 {
 		peek := response.Header.Peek("Location")
-		if !strings.HasSuffix(string(peek),"http") {
+		if string(peek)[:4] != "http" {
 			if strings.Split(url, ":")[1] == "80" {
 				return strconv.Itoa(response.StatusCode()) + " " + "http://" + strings.Split(url, ":")[0]
 			} else {
@@ -521,7 +564,7 @@ func FastHTTPS(url string) string {
 	}
 	if response.StatusCode() == 301 || response.StatusCode() == 302 {
 		peek := response.Header.Peek("Location")
-		if !strings.HasSuffix(string(peek),"http") {
+		if string(peek)[:4] != "http" {
 			if strings.Split(url, ":")[1] == "443" {
 				return strconv.Itoa(response.StatusCode()) + " " + "https://" + strings.Split(url, ":")[0]
 			} else {
@@ -539,7 +582,7 @@ func FastHTTPS(url string) string {
 }
 
 func Exist(source []string, data string) bool {
-	for i := 0;i<len(source);i++ {
+	for i := 0; i < len(source); i++ {
 		if source[i] == data {
 			return true
 		}
