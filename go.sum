@@ -2,6 +2,8 @@ github.com/Ullaakut/nmap v2.0.0+incompatible h1:tNXub052dsnG8+yrgpph9nhVixIBdpRR
 github.com/Ullaakut/nmap v2.0.0+incompatible/go.mod h1:fkC066hwfcoKwlI7DS2ARTggSVtBTZYCjVH1TzuTMaQ=
 github.com/andybalholm/brotli v1.0.0 h1:7UCwP93aiSfvWpapti8g88vVVGp2qqtGyePsSuDafo4=
 github.com/andybalholm/brotli v1.0.0/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
+github.com/bufsnake/go-masscan v0.0.0-20210111015631-180a4e32f7bf h1:9sWYmL/GU1eCneoOzlBORJwF8BwDdBcFFUj1pPTN0xY=
+github.com/bufsnake/go-masscan v0.0.0-20210111015631-180a4e32f7bf/go.mod h1:z90vXB8E10LNDzw8QbcbrToDxD/bs5I+GfRjZZOYvnU=
 github.com/bufsnake/parseip v0.0.0-20201103070626-6316470d5665 h1:tBtZYnZMZPseMHFiDbKgLRzdpAmfV7wyizv89kQ5g1k=
 github.com/bufsnake/parseip v0.0.0-20201103070626-6316470d5665/go.mod h1:OceFywin22f9fCK98DiNJ74kHQsBoLGBZOhVuuTHs90=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

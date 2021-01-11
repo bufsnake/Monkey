@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/Ullaakut/nmap v2.0.0+incompatible
+	github.com/bufsnake/go-masscan v0.0.0-20210111015631-180a4e32f7bf
 	github.com/bufsnake/parseip v0.0.0-20201103070626-6316470d5665
 	github.com/dean2021/go-masscan v0.0.0-20181206040455-0ec37606e016
 	github.com/fatih/color v1.10.0

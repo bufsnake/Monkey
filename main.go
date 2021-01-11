@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Ullaakut/nmap"
 	"github.com/bufsnake/parseip"
-	"github.com/dean2021/go-masscan"
+	"github.com/bufsnake/go-masscan"
 	"github.com/fatih/color"
 	_ "github.com/google/gopacket"
 	_ "github.com/google/gopacket/layers"
