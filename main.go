@@ -5,15 +5,15 @@ import (
 	"flag"
 	"fmt"
 	"github.com/Ullaakut/nmap"
-	"github.com/bufsnake/parseip"
 	"github.com/bufsnake/go-masscan"
+	"github.com/bufsnake/parseip"
 	"github.com/fatih/color"
 	_ "github.com/google/gopacket"
 	_ "github.com/google/gopacket/layers"
 	"github.com/kyokomi/emoji"
-	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -528,65 +528,54 @@ func GetWeb(wait *sync.WaitGroup, ipchan chan string) {
 }
 
 func FastHTTP(url string) string {
-	client := fasthttp.Client{}
-	client.Name = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"
-	response := &fasthttp.Response{}
-	request := &fasthttp.Request{}
-	request.SetRequestURI("http://" + url)
-	request.Header.SetMethod("HEAD")
-	request.Header.Add("Connection", "close")
-	if err := client.DoTimeout(request, response, 5*time.Second); err != nil {
+	client := http.Client{
+		Timeout: 60 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	req, _ := http.NewRequest("GET", "http://"+url, nil)
+	req.Header.Add("Connection", "close")
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36")
+	response, err := client.Do(req)
+	if err != nil {
 		return ""
 	}
-	if response.StatusCode() == 301 || response.StatusCode() == 302 {
-		peek := response.Header.Peek("Location")
-		if string(peek)[:4] != "http" {
-			if strings.Split(url, ":")[1] == "80" {
-				return strconv.Itoa(response.StatusCode()) + " " + "http://" + strings.Split(url, ":")[0]
-			} else {
-				return strconv.Itoa(response.StatusCode()) + " " + "http://" + url
-			}
-		} else {
-			return strconv.Itoa(response.StatusCode()) + " " + string(peek)
-		}
-	}
 	if strings.Split(url, ":")[1] == "80" {
-		return strconv.Itoa(response.StatusCode()) + " " + "http://" + strings.Split(url, ":")[0]
+		return strconv.Itoa(response.StatusCode) + " " + "http://" + strings.Split(url, ":")[0]
 	} else {
-		return strconv.Itoa(response.StatusCode()) + " " + "http://" + url
+		return strconv.Itoa(response.StatusCode) + " " + "http://" + url
 	}
 }
 
 func FastHTTPS(url string) string {
-	client := fasthttp.Client{}
-	client.Name = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36"
-	client.TLSConfig = &tls.Config{
-		InsecureSkipVerify: true,
+	client := http.Client{
+		Timeout: 60 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
-	response := &fasthttp.Response{}
-	request := &fasthttp.Request{}
-	request.SetRequestURI("https://" + url)
-	request.Header.SetMethod("HEAD")
-	request.Header.Add("Connection", "close")
-	if err := client.DoTimeout(request, response, 5*time.Second); err != nil {
+	req, _ := http.NewRequest("GET", "https://"+url, nil)
+	req.Header.Add("Connection", "close")
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36")
+	response, err := client.Do(req)
+	if err != nil {
 		return ""
 	}
-	if response.StatusCode() == 301 || response.StatusCode() == 302 {
-		peek := response.Header.Peek("Location")
-		if string(peek)[:4] != "http" {
-			if strings.Split(url, ":")[1] == "443" {
-				return strconv.Itoa(response.StatusCode()) + " " + "https://" + strings.Split(url, ":")[0]
-			} else {
-				return strconv.Itoa(response.StatusCode()) + " " + "https://" + url
-			}
-		} else {
-			return strconv.Itoa(response.StatusCode()) + " " + string(peek)
-		}
-	}
 	if strings.Split(url, ":")[1] == "443" {
-		return strconv.Itoa(response.StatusCode()) + " " + "https://" + strings.Split(url, ":")[0]
+		return strconv.Itoa(response.StatusCode) + " " + "https://" + strings.Split(url, ":")[0]
 	} else {
-		return strconv.Itoa(response.StatusCode()) + " " + "https://" + url
+		return strconv.Itoa(response.StatusCode) + " " + "https://" + url
 	}
 }
 
