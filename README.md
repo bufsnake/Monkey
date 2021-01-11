@@ -54,4 +54,4 @@ Usage of ./Monkey:
 
 ## TODO
 
-- [  ]  导出数据为gobydata格式
+- [ ] 导出数据为gobydata格式
