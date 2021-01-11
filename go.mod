@@ -10,5 +10,6 @@ require (
 	github.com/google/gopacket v1.1.19
 	github.com/kyokomi/emoji v2.2.4+incompatible
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/valyala/fasthttp v1.16.0
 )

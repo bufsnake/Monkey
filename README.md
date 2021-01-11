@@ -38,12 +38,20 @@ Usage of ./Monkey:
   -i string
     	指定IP
   -m	指定是否使用masscan进行端口扫描
+  -nmap-alive
+    	是否使用nmap进行探活
+  -p int
+    	指定端口扫描线程,默认50 (default 5)
   -t int
     	指定线程,默认50 (default 50)
   -v string
-    	指定-sV详细程度0-9 (default "0")
+    	指定-sV详细程度0-9 (default "2")
 ```
 
 ## 效果
 
   ![效果图](/img/img2.png)
+
+## TODO
+
+- [  ]  导出数据为gobydata格式

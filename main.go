@@ -1,11 +1,11 @@
 package main
 
 import (
-    "github.com/bufsnake/parseip"
 	"crypto/tls"
 	"flag"
 	"fmt"
 	"github.com/Ullaakut/nmap"
+	"github.com/bufsnake/parseip"
 	"github.com/dean2021/go-masscan"
 	"github.com/fatih/color"
 	_ "github.com/google/gopacket"
@@ -33,7 +33,7 @@ var (
 	masscaner  bool
 	alllink    []string
 	file       string
-	nmapalive bool
+	nmapalive  bool
 	lock       sync.Mutex
 )
 
@@ -55,7 +55,7 @@ func init() {
 	flag.StringVar(&ips, "i", "", "指定IP")
 	flag.IntVar(&thread, "t", 50, "指定线程,默认50")
 	flag.IntVar(&portthread, "p", 5, "指定端口扫描线程,默认50")
-	flag.StringVar(&version, "v", "0", "指定-sV详细程度0-9")
+	flag.StringVar(&version, "v", "2", "指定-sV详细程度0-9")
 	flag.BoolVar(&masscaner, "m", false, "指定是否使用masscan进行端口扫描")
 	flag.StringVar(&file, "f", "", "从文件中获取IP")
 	flag.BoolVar(&nmapalive, "nmap-alive", false, "是否使用nmap进行探活")
@@ -384,6 +384,15 @@ func TCPScan(wait *sync.WaitGroup, ipchan chan string) {
 		}
 		for _, hosts := range run.Hosts {
 			for _, ports := range hosts.Ports {
+				if len(ports.Service.Tunnel) != 0 {
+					ports.Service.Name = ports.Service.Tunnel + "/" + ports.Service.Name
+				}
+				if len(ports.Service.ServiceFP) != 0 && ports.Service.Name != "unknown" {
+					ports.Service.Name = ports.Service.Name + "?"
+				}
+				if strings.Contains(ports.Service.ServiceFP,"HTTP") {
+					ports.Service.Name = "http"
+				}
 				link := ""
 				if strings.Contains(ports.Service.Name, "http") || strings.Contains(ports.Service.Name, "tcpwrapped") || strings.Contains(ports.Service.Name, "caldav") || strings.Contains(ports.Service.Name, "sip") || strings.Contains(ports.Service.Name, "rtsp") || strings.Contains(ports.Service.Name, "soap") {
 					link := ">>> WEB <<<"
