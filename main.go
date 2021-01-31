@@ -454,7 +454,7 @@ func MPortScan(ip string) string {
 	m := masscan.New()
 	m.SetPorts("0-65535")
 	m.SetArgs(ip)
-	m.SetRate("1000")
+	m.SetRate("1500")
 	err := m.Run()
 	if err != nil {
 		color.Red(err.Error())
