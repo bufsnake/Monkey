@@ -390,7 +390,7 @@ func TCPScan(wait *sync.WaitGroup, ipchan chan string) {
 				if len(ports.Service.ServiceFP) != 0 && ports.Service.Name != "unknown" {
 					ports.Service.Name = ports.Service.Name + "?"
 				}
-				if strings.Contains(ports.Service.ServiceFP,"HTTP") {
+				if strings.Contains(ports.Service.ServiceFP, "HTTP") {
 					ports.Service.Name = "http"
 				}
 				link := ""
@@ -457,6 +457,8 @@ func MPortScan(ip string) string {
 	m.SetRate("1000")
 	err := m.Run()
 	if err != nil {
+		color.Red(err.Error())
+		os.Exit(1)
 		return ""
 	}
 	results, err := m.Parse()
@@ -474,29 +476,10 @@ func MPortScan(ip string) string {
 func IsOpenTCP(IpAddr, Port string) bool {
 	conn, err := net.DialTimeout("tcp", IpAddr+":"+Port, time.Second*1/10)
 	if err != nil {
-		//color.Red(err.Error())
 		return false
 	}
 	conn.Close()
 	return true
-}
-
-// 未实现
-func IsOpenPcap(IpAddr, Port string) bool {
-	en0, err := net.InterfaceByName("en3")
-	if err != nil {
-		color.Red("network interface error " + err.Error())
-		os.Exit(1)
-	}
-	addrs, err := en0.Addrs()
-	if err != nil {
-		color.Red("network interface error " + err.Error())
-		os.Exit(1)
-	}
-	SrcIP := net.ParseIP(strings.Split(addrs[1].String(), "/")[0])
-	DstIP := net.ParseIP(IpAddr)
-	fmt.Println(SrcIP, DstIP)
-	return false
 }
 
 func GetWeb(wait *sync.WaitGroup, ipchan chan string) {
