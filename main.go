@@ -83,7 +83,7 @@ func main() {
 			if val == "" {
 				continue
 			}
-			temp := parseip.ParseIP(val)
+			temp := parseip.ParseIP(strings.Trim(val, "\r"))
 			for _, temp_val := range temp {
 				if !Exist(ip, temp_val) {
 					ip = append(ip, temp_val)
