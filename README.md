@@ -1,57 +1,38 @@
-## Monkey
+## 简介
 
-基于 nmap + masscan + socket port scan
-
-## 使用场景
-
-`基于线程为255的情况下`
-
-### socket扫描
-
-```bash
-建议内网，路由跳为0的时候使用
-理论最大耗时不会超过23分钟
-在未设置网关的情况下使用
-```
-
-### masscan扫描
-
-```
-建议在公网服务器上使用
-根据网络情况，耗时不会超过5分钟
-有网关的情况下使用
-```
+> 基于 nmap + masscan
 
 ## 编译
 
 ```bash
+go get github.com/bufsnake/Monkey
+
+cd $GOPATH/src/github.com/bufsnake/Monkey/cmd/Monkey/
+
 go build -v
 ```
 
-## Usage
+## 用法
 
 ```bash
-└> ./Monkey -h
+└> ./Monkey
 Usage of ./Monkey:
   -f string
-    	从文件中获取IP
-  -i string
-    	指定IP
-  -m	指定是否使用masscan进行端口扫描
-  -nmap-alive
-    	是否使用nmap进行探活
-  -p int
-    	指定端口扫描线程,默认50 (default 5)
-  -t int
-    	指定线程,默认50 (default 50)
-  -v string
-    	指定-sV详细程度0-9 (default "2")
+    	specify target ip from file
+  -m string
+    	masscan rate (default "1000")
+  -n string
+    	nmap version intensity,optional 0~9 (default "2")
+  -p string
+    	specify scan ports (default "0-65535")
+  -r int
+    	specify scan rate (default 6)
+  -t string
+    	specify target ip
+  -w int
+    	web request timeout (default 10)
 ```
 
-## 效果
+## 截图
 
-  ![效果图](/img/img2.png)
-
-## TODO
-
-- [ ] 导出数据为gobydata格式
+![image-20210320130925793](.images/image-20210320130925793.png)
