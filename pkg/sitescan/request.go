@@ -3,6 +3,9 @@ package web
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
+	"github.com/bufsnake/Sea/pkg/fingerprint"
+	"github.com/bufsnake/Sea/pkg/useragent"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"html"
@@ -45,7 +48,7 @@ func (r *request) Run() error {
 	if err != nil {
 		return err
 	}
-	request.Header.Set("USER-AGENT", "")
+	request.Header.Set("USER-AGENT", useragent.RandomUserAgent())
 	request.Header.Set("Connection", "close")
 	request.Header.Set("rememberMe", "xxxxxxxxxxxxxxx")
 	do, err := client.Do(request)
@@ -78,11 +81,56 @@ func (r *request) Run() error {
 		}
 		r.header[key] = strings.ToLower(val)
 	}
+	r.middleware = r.GetServer()
+	r.xpoweredby = r.GetXPoweredBy()
+	r.getproduct()
 	return nil
+}
+
+func (r *request) GetProduct() string {
+	// fingerprint
+	return r.product
+}
+
+func (r *request) getproduct() {
+	// fingerprint
+	product := fingerprint.NewFingerprint(r.url, &r.title, &r.header, &r.body)
+	run, err := product.Run()
+	if err != nil {
+		return
+	}
+	if run != "" {
+		rule := product.GetRule()
+		temp, _ := json.Marshal(&rule)
+		r.product = run
+		r.product_rule = string(temp)
+	}
+	return
+}
+
+func (r *request) GetProductRule() string {
+	return r.product_rule
+}
+
+func (r *request) GetHeader(key string) string {
+	for v, k := range r.header {
+		if strings.ToLower(v) == strings.ToLower(key) {
+			return k
+		}
+	}
+	return ""
 }
 
 func (r *request) GetTitle() string {
 	return r.title
+}
+
+func (r *request) GetServer() string {
+	return r.GetHeader("Server")
+}
+
+func (r *request) GetXPoweredBy() string {
+	return r.GetHeader("X-Powered-By")
 }
 
 func (r *request) GetCode() int {
@@ -91,6 +139,10 @@ func (r *request) GetCode() int {
 
 func (r *request) GetLength() int {
 	return r.length
+}
+
+func (r *request) GetBody() string {
+	return r.body
 }
 
 func (r *request) GetUrl() string {

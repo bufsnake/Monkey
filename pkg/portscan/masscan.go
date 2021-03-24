@@ -2,12 +2,47 @@ package findport
 
 import (
 	"errors"
+	"github.com/bufsnake/Monkey/config"
 	"github.com/bufsnake/go-masscan"
 	"strconv"
 	"strings"
 )
 
-func (r *findport) getport(ip string) error {
+type mas_scan struct {
+	conf         config.Config
+	port         string
+	nmapsv       string
+	masscan_rate string
+	masscan_port string
+	Services     []Service
+}
+
+func (f *mas_scan) PortScan(ip string) error {
+	if !f.conf.NoPing {
+		ping, err := pingscan(ip)
+		if err != nil {
+			return err
+		}
+		if !ping {
+			return errors.New("ping scan " + ip + " not alive")
+		}
+	}
+	err := f.getport(ip)
+	if err != nil {
+		return err
+	}
+	err = f.getsevice(ip)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *mas_scan) GetService() []Service {
+	return f.Services
+}
+
+func (r *mas_scan) getport(ip string) error {
 	m := masscan.New()
 	m.SetPorts(r.port)
 	m.SetRate(r.masscan_rate)

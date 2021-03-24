@@ -2,12 +2,13 @@ package findport
 
 import (
 	"github.com/Ullaakut/nmap"
+	"github.com/bufsnake/Sea/pkg/useragent"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (r *findport) getsevice(ip string) error {
+func (r *mas_scan) getsevice(ip string) error {
 	retry := true
 again:
 	scanner, err := nmap.NewScanner(
@@ -17,6 +18,7 @@ again:
 		nmap.WithCustomArguments(r.nmapsv), // 0-9
 		nmap.WithCustomArguments("-Pn"),
 		nmap.WithCustomArguments("--script-args"),
+		nmap.WithCustomArguments("http.useragent=\""+useragent.RandomUserAgent()+"\""),
 		nmap.WithCustomArguments("-p"),
 		nmap.WithCustomArguments(r.masscan_port),
 		nmap.WithCustomArguments("-n"),

@@ -1,35 +1,25 @@
 package findport
 
-import "github.com/bufsnake/Monkey/config"
-
-type findport struct {
-	port         string
-	nmapsv       string
-	masscan_rate string
-	masscan_port string
-	Services     []Service
-}
+import (
+	"github.com/bufsnake/Monkey/config"
+)
 
 type Service struct {
 	IP        string
 	Port      string
 	Protocol  string
 	Version   string
-	ServiceFP string
+	ServiceFP string // 终端不输出，输出到CSV中
 }
 
-func NewPortScan(config config.Config) (*findport, error) {
-	return &findport{port: config.Port, nmapsv: config.NmapsV, masscan_rate: config.MasscanRate}, nil
+type portscan interface {
+	PortScan(ip string) error
+	GetService() []Service
 }
 
-func (f *findport) PortScan(ip string) error {
-	err := f.getport(ip)
-	if err != nil {
-		return err
+func NewPortScanX(config config.Config) portscan {
+	if config.Masscan {
+		return &mas_scan{conf: config, port: config.Port, nmapsv: config.NmapsV, masscan_rate: config.MasscanRate}
 	}
-	err = f.getsevice(ip)
-	if err != nil {
-		return err
-	}
-	return nil
+	return &socket{conf: config, port: config.Port, nmapsv: config.NmapsV, masscan_rate: config.MasscanRate}
 }

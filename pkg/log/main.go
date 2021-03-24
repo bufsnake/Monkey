@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+var output_file string
 var totalcountbak float64    // 总数
 var totalcount float64       // 总数
 var increase float64         // 递增
@@ -17,6 +18,10 @@ var ipalive map[string]int   // IP存活数量
 var portnum int              // 端口数量
 var errnum int               // 失败数量
 var timestart time.Time      // 开始时间
+
+func SetOutputCSV(filename string) {
+	output_file = filename
+}
 
 func Bar() {
 	for {
@@ -52,6 +57,7 @@ func Println(a ...interface{}) {
 	defer schedule_lock.Unlock()
 	increase++
 	terminal := []interface{}{}
+	error := false
 	for i := 0; i < len(a); i++ {
 		if i == 4 {
 			break
@@ -60,6 +66,9 @@ func Println(a ...interface{}) {
 			terminal = append(terminal, "\r"+color(i, a[i]))
 		} else {
 			terminal = append(terminal, color(i, a[i]))
+		}
+		if strings.Contains(color(i, a[i]), "not found port") || strings.Contains(color(i, a[i]), "Not Alive") {
+			error = true
 		}
 	}
 	if len(a) > 2 {
@@ -75,7 +84,9 @@ func Println(a ...interface{}) {
 		errnum++
 		terminal = append(terminal, strings.Repeat(" ", 30))
 	}
-	fmt.Println(terminal...)
+	if !error {
+		fmt.Println(terminal...)
+	}
 	if totalcount == 0 {
 		return
 	}
