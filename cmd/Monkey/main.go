@@ -101,17 +101,10 @@ func main() {
 			}
 		}
 	}
-	// IP区间去重
-	allip = parseip.DeDuplication(allip)
-	// IP区间去重
 
-	a := make([]string, 0)
 	var count uint32
 	for i := 0; i < len(allip); i++ {
 		count += allip[i][1] - allip[i][0] + 1
-		for x := allip[i][0]; x <= allip[i][1]; x++ {
-			a = append(a, parseip.UInt32ToIP(x))
-		}
 	}
 	log.SetOutputCSV(conf.Output)
 	log.SetTotalCount(int(count))

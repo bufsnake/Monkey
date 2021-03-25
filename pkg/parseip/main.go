@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -143,59 +142,4 @@ func UInt32ToIP(intIP uint32) string {
 	bytes[3] = byte((intIP >> 24) & 0xFF)
 
 	return net.IPv4(bytes[3], bytes[2], bytes[1], bytes[0]).String()
-}
-
-// 去重
-// 本身为啥就为啥
-// 本身为反向则清空该点
-// 本身为center则设为目前点
-// 第一个一定是right
-// 判断第二个 一直找，知道找到下一个right的前一个left
-func DeDuplication(allip [][2]uint32) [][2]uint32 {
-	var results [][2]uint32
-	linear := make(map[uint32]string) // left center right
-	for i := 0; i < len(allip); i++ {
-		if allip[i][0] == allip[i][1] {
-			if _, b := linear[allip[i][0]]; !b {
-				linear[allip[i][0]] = "center"
-			}
-			continue
-		}
-		if _, b := linear[allip[i][0]]; !b {
-			linear[allip[i][0]] = "right"
-		} else {
-			if linear[allip[i][0]] == "left" {
-				delete(linear, allip[i][0])
-			} else if linear[allip[i][0]] == "center" {
-				linear[allip[i][0]] = "right"
-			}
-		}
-		if _, b := linear[allip[i][1]]; !b {
-			linear[allip[i][1]] = "left"
-		} else {
-			if linear[allip[i][1]] == "right" {
-				delete(linear, allip[i][0])
-			} else if linear[allip[i][1]] == "center" {
-				linear[allip[i][0]] = "left"
-			}
-		}
-	}
-	key := make([]int, 0)
-	for xxx, _ := range linear {
-		key = append(key, int(xxx))
-	}
-	sort.Ints(key)
-	for i := 0; i < len(key); i++ {
-		var start, end uint32
-		start = uint32(key[i])
-		for j := i + 1; j < len(key); j++ {
-			if (linear[uint32(key[j])] == "left" && j+1 == len(linear)) || (linear[uint32(key[j])] == "left" && linear[uint32(key[j+1])] == "right") {
-				end = uint32(key[j])
-				i = j
-				break
-			}
-		}
-		results = append(results, [2]uint32{start, end})
-	}
-	return results
 }

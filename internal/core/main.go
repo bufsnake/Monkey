@@ -37,9 +37,15 @@ func (c *core) Start() {
 		go c.httpchan(&httpwait, httpchan)
 		go c.blastchan(&blastwait, blastchan)
 	}
+	xxxx := make(map[uint32]bool)
 	for i := 0; i < len(c.allip); i++ {
-		for j := c.allip[i][0]; j < c.allip[i][1]; j++ {
-			portchan <- UInt32ToIP(j)
+		for j := c.allip[i][0]; j <= c.allip[i][1]; j++ {
+			if _, ok := xxxx[j]; !ok {
+				xxxx[j] = true
+				portchan <- UInt32ToIP(j)
+			} else {
+				log.Println("not found port")
+			}
 		}
 	}
 	close(portchan)
