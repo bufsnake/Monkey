@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/Ullaakut/nmap v1.0.0
-	github.com/bufsnake/Sea v0.0.0-20210313154631-1da2b18e8c28
 	github.com/bufsnake/go-masscan v0.0.0-20210111015631-180a4e32f7bf
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/garyburd/redigo v1.6.2
@@ -19,4 +18,5 @@ require (
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/text v0.3.5
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

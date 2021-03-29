@@ -2,7 +2,6 @@ package findport
 
 import (
 	"github.com/Ullaakut/nmap"
-	"github.com/bufsnake/Sea/pkg/useragent"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +17,6 @@ again:
 		nmap.WithCustomArguments(r.nmapsv), // 0-9
 		nmap.WithCustomArguments("-Pn"),
 		nmap.WithCustomArguments("--script-args"),
-		nmap.WithCustomArguments("http.useragent=\""+useragent.RandomUserAgent()+"\""),
 		nmap.WithCustomArguments("-p"),
 		nmap.WithCustomArguments(r.masscan_port),
 		nmap.WithCustomArguments("-n"),
