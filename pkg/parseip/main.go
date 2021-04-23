@@ -41,13 +41,24 @@ func singleip(ip string) (startx uint32, endx uint32, err error) {
 			return 0, 0, errors.New(ip + " ip parse error")
 		}
 	}
-	return ip2UInt32(ip), ip2UInt32(ip), nil
+	startx, err = ip2UInt32(ip)
+	if err != nil {
+		return 0, 0, err
+	}
+	endx, err = ip2UInt32(ip)
+	if err != nil {
+		return 0, 0, err
+	}
+	return startx, endx, nil
 }
 
 // 192.168.113.159-255
 func multipleip(ips string) (startx uint32, endx uint32, err error) {
 	host := strings.Split(ips, "-")
 	ip := host[0]
+	if len(strings.Split(ip, ".")) != 4 {
+		return 0, 0, errors.New("multipleip error " + ips)
+	}
 	start, err := strconv.Atoi(strings.Split(ip, ".")[3])
 	if err != nil {
 		return 0, 0, errors.New(ips + " " + err.Error() + " ip parse error")
@@ -66,13 +77,27 @@ func multipleip(ips string) (startx uint32, endx uint32, err error) {
 		end = 255
 	}
 	temp := strings.Split(ip, ".")
-	return ip2UInt32(temp[0] + "." + temp[1] + "." + temp[2] + "." + strconv.Itoa(start)), ip2UInt32(temp[0] + "." + temp[1] + "." + temp[2] + "." + strconv.Itoa(end)), nil
+	start_t, err := ip2UInt32(temp[0] + "." + temp[1] + "." + temp[2] + "." + strconv.Itoa(start))
+	if err != nil {
+		return 0, 0, err
+	}
+	end_t, err := ip2UInt32(temp[0] + "." + temp[1] + "." + temp[2] + "." + strconv.Itoa(end))
+	if err != nil {
+		return 0, 0, err
+	}
+	return start_t, end_t, nil
 }
 
 // 192.168.113.159-192.168.113.254
 func multipleip2(ips string) (startx uint32, endx uint32, err error) {
-	start := ip2UInt32(strings.Split(ips, "-")[0])
-	end := ip2UInt32(strings.Split(ips, "-")[1])
+	start, err := ip2UInt32(strings.Split(ips, "-")[0])
+	if err != nil {
+		return 0, 0, err
+	}
+	end, err := ip2UInt32(strings.Split(ips, "-")[1])
+	if err != nil {
+		return 0, 0, err
+	}
 	if start > end {
 		return 0, 0, errors.New(ips + " error")
 	}
@@ -118,20 +143,35 @@ func multipleip3(ips string) (startx uint32, endx uint32, err error) {
 	return uint32(start1), uint32(end2), nil
 }
 
-func ip2UInt32(ipnr string) uint32 {
+func ip2UInt32(ipnr string) (uint32, error) {
 	bits := strings.Split(ipnr, ".")
+	if len(bits) != 4 {
+		return 0, errors.New("ip2Uint32 error " + ipnr)
+	}
 
-	b0, _ := strconv.Atoi(bits[0])
-	b1, _ := strconv.Atoi(bits[1])
-	b2, _ := strconv.Atoi(bits[2])
-	b3, _ := strconv.Atoi(bits[3])
+	b0, err := strconv.Atoi(bits[0])
+	if err != nil {
+		return 0, err
+	}
+	b1, err := strconv.Atoi(bits[1])
+	if err != nil {
+		return 0, err
+	}
+	b2, err := strconv.Atoi(bits[2])
+	if err != nil {
+		return 0, err
+	}
+	b3, err := strconv.Atoi(bits[3])
+	if err != nil {
+		return 0, err
+	}
 
 	var sum uint32
 	sum += uint32(b0) << 24
 	sum += uint32(b1) << 16
 	sum += uint32(b2) << 8
 	sum += uint32(b3)
-	return sum
+	return sum, nil
 }
 
 func UInt32ToIP(intIP uint32) string {
