@@ -2,10 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
-
   build:
     runs-on: ubuntu-16.04
     steps:
