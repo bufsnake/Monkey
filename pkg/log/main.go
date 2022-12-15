@@ -4,12 +4,12 @@ import (
 	"fmt"
 	. "github.com/logrusorgru/aurora"
 	"math"
+	"os"
 	"strings"
 	"sync"
 	"time"
 )
 
-var output_file string
 var totalcountbak float64    // 总数
 var totalcount float64       // 总数
 var increase float64         // 递增
@@ -19,15 +19,16 @@ var portnum int              // 端口数量
 var errnum int               // 失败数量
 var timestart time.Time      // 开始时间
 
-func SetOutputCSV(filename string) {
-	output_file = filename
-}
+var STOP = false
 
 func Bar() {
 	for {
+		if STOP {
+			break
+		}
 		percentage := math.Trunc(((increase/totalcount)*100)*1e2) * 1e-2 // 更新进度条
-		fmt.Printf("\r%s %.0f  %s %.2f%%  %s %d  %s %d  %s %d  %s %.2fs               ", BrightWhite("AllIP:").String(), totalcountbak, BrightWhite("Percentage:").String(), percentage, BrightWhite("IP:").String(), len(ipalive), BrightWhite("Port:").String(), portnum, BrightWhite("Err:").String(), errnum, BrightWhite("Time:").String(), time.Now().Sub(timestart).Seconds())
-		time.Sleep(1 * time.Second)
+		_, _ = fmt.Fprintf(os.Stdout, "\r\033[K\033[?25l%s %.0f  %s %.2f%%  %s %d  %s %d  %s %d  %s %.2fs", BrightWhite("AllIP:").String(), totalcountbak, BrightWhite("Percentage:").String(), percentage, BrightWhite("IP:").String(), len(ipalive), BrightWhite("Port:").String(), portnum, BrightWhite("Err:").String(), errnum, BrightWhite("Time:").String(), time.Now().Sub(timestart).Seconds())
+		time.Sleep(1 * time.Second / 10)
 	}
 }
 
@@ -50,14 +51,13 @@ func UpdateTotalCount(portcount int) {
 }
 
 // Terminal == IP PORT PROTOCOL VERSION
-// CSV      == IP PORT PROTOCOL SCREEN SERVICEFP
 // 进度: Percentage IP存活: IPAliveNum 端口数量: PortNum 当前耗时: xxxx
 func Println(a ...interface{}) {
 	schedule_lock.Lock()
 	defer schedule_lock.Unlock()
 	increase++
 	terminal := []interface{}{}
-	error := false
+	err := false
 	for i := 0; i < len(a); i++ {
 		if i == 4 {
 			break
@@ -67,8 +67,8 @@ func Println(a ...interface{}) {
 		} else {
 			terminal = append(terminal, color(i, a[i]))
 		}
-		if strings.Contains(color(i, a[i]), "not found port") || strings.Contains(color(i, a[i]), "Not Alive") {
-			error = true
+		if strings.Contains(color(i, a[i]), "not found port") {
+			err = true
 		}
 	}
 	if len(a) > 2 {
@@ -78,13 +78,13 @@ func Println(a ...interface{}) {
 			if len(color(3, a[3])) < 30+9 {
 				terminal = append(terminal, strings.Repeat(" ", 30))
 			}
-
+			
 		}
 	} else {
 		errnum++
 		terminal = append(terminal, strings.Repeat(" ", 30))
 	}
-	if !error {
+	if !err {
 		fmt.Println(terminal...)
 	}
 	if totalcount == 0 {

@@ -19,7 +19,7 @@ func (s *memcached) Info() string {
 }
 
 func (m *memcached) Connect() (string, error) {
-	conn, err := net.DialTimeout("tcp", m.ip+":"+m.port, 10*time.Second)
+	conn, err := net.DialTimeout("tcp", m.ip+":"+m.port, 3*time.Second)
 	if err != nil {
 		return "", err
 	}

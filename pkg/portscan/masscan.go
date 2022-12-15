@@ -1,4 +1,4 @@
-package findport
+package portscan
 
 import (
 	"errors"
@@ -18,15 +18,6 @@ type mas_scan struct {
 }
 
 func (f *mas_scan) PortScan(ip string) error {
-	if !f.conf.NoPing {
-		ping, err := pingscan(ip)
-		if err != nil {
-			return err
-		}
-		if !ping {
-			return errors.New("ping scan " + ip + " not alive")
-		}
-	}
 	err := f.getport(ip)
 	if err != nil {
 		return err
@@ -57,8 +48,8 @@ func (r *mas_scan) getport(ip string) error {
 	}
 	count := 0
 	for _, result := range results {
-		for _, ip := range result.Ports {
-			r.masscan_port += ip.Portid + ","
+		for _, ports := range result.Ports {
+			r.masscan_port += ports.Portid + ","
 			count++
 		}
 	}

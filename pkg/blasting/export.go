@@ -1,7 +1,9 @@
 package blasting
 
 import (
+	"errors"
 	"strconv"
+	"strings"
 )
 
 type Blast interface {
@@ -17,32 +19,38 @@ func NewBlast(service, ip, port string) (Blast, error) {
 	if atoi < 0 || atoi > 65535 {
 		return nil, err
 	}
-	switch service {
-	case "ssh", "ssl/ssh":
+	switch strings.ToUpper(service) {
+	case "SSH", "SSL/SSH":
 		return &clissh{ip: ip, port: port}, nil
-	case "ftp", "ssl/ftp":
+	case "FTP", "SSL/FTP":
 		return &cliftp{ip: ip, port: port}, nil
-	case "mysql", "nagios-nsca", "ssl/mysql", "ssl/nagios-nsca":
+	case "MYSQL", "NAGIOS-NSCA", "SSL/MYSQL", "SSL/NAGIOS-NSCA":
 		return &climysql{ip: ip, port: port}, nil
-	case "ms-sql-s", "ssl/ms-sql-s":
+	case "MS-SQL-S", "SSL/MS-SQL-S":
 		return &mssql{ip: ip, port: port}, nil
-	case "redis", "ssl/redis":
-		return &cliredis{ip: ip, port: port}, nil
-	case "mongodb", "ssl/mongodb":
+	case "REDIS", "SSL/REDIS":
+		return &redis_cli{ip: ip, port: port}, nil
+	case "MONGOD", "SSL/MONGOD", "MONGODB", "SSL/MONGODB":
 		return &mongodb{ip: ip, port: port}, nil
-	case "postgresql", "ssl/postgresql":
+	case "POSTGRESQL", "SSL/POSTGRESQL":
 		return &postgresql{ip: ip, port: port}, nil
-	case "microsoft-ds", "ssl/microsoft-ds":
+	case "MICROSOFT-DS", "SSL/MICROSOFT-DS":
 		return &clismb{ip: ip, port: port}, nil
-	case "snmp", "ssl/snmp":
+	case "SNMP", "SSL/SNMP":
 		return &snmp{ip: ip, port: port}, nil
-	case "docker", "ssl/docker":
+	case "DOCKER", "SSL/DOCKER":
 		return &docker{ip: ip, port: port}, nil
-	case "zookeeper", "ssl/zookeeper":
+	case "ZOOKEEPER", "SSL/ZOOKEEPER":
 		return &zookeeper{ip: ip, port: port}, nil
-	case "memcached", "ssl/memcached":
+	case "MEMCACHE", "SSL/MEMCACHE":
 		return &memcached{ip: ip, port: port}, nil
+	case "MS-WBT-SERVER", "SSL/MS-WBT-SERVER":
+		return &rdpcli{ip: ip, port: port}, nil
+	case "TELNET", "SSL/TELNET":
+		return &telnetcli{ip: ip, port: port}, nil
+	case "ORACLE", "SSL/ORACLE":
+		return &oraclecli{ip: ip, port: port}, nil
 	default:
-		return nil, nil
+		return nil, errors.New("found no protocol")
 	}
 }

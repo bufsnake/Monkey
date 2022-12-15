@@ -1,4 +1,4 @@
-package findport
+package portscan
 
 import (
 	"github.com/bufsnake/Monkey/config"
@@ -17,9 +17,6 @@ type portscan interface {
 	GetService() []Service
 }
 
-func NewPortScanX(config config.Config) portscan {
-	if config.Masscan {
-		return &mas_scan{conf: config, port: config.Port, nmapsv: config.NmapsV, masscan_rate: config.MasscanRate}
-	}
-	return &socket{conf: config, port: config.Port, nmapsv: config.NmapsV, masscan_rate: config.MasscanRate}
+func NewPortScan(config config.Config) portscan {
+	return &mas_scan{conf: config, port: config.Port, nmapsv: config.NmapSV, masscan_rate: config.MasScanRate}
 }

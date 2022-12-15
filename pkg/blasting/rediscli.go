@@ -8,29 +8,30 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 	"time"
 )
 
-type cliredis struct {
+type redis_cli struct {
 	ip   string
 	port string
 }
 
-// 方便判断是啥类型的漏洞
-func (s *cliredis) Info() string {
+func (r *redis_cli) Info() string {
 	return "weak"
 }
-func (r *cliredis) Connect() (string, error) {
-	conn, err := net.DialTimeout("tcp", r.ip+":"+r.port, 10*time.Second)
+
+func (r *redis_cli) Connect() (string, error) {
+	conn, err := net.DialTimeout("tcp", r.ip+":"+r.port, 3*time.Second)
 	if err != nil {
 		log.Println("Redis Unauth Check Error", err)
 	} else {
-		conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+		conn.SetWriteDeadline(time.Now().Add(3 * time.Second))
 		_, err = conn.Write([]byte("info\r\n"))
 		if err != nil {
 			log.Println("Redis Unauth Check Error", err)
 		} else {
-			conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+			conn.SetReadDeadline(time.Now().Add(3 * time.Second))
 			reader := bufio.NewReader(conn)
 			line, _ := reader.ReadString(byte('\n'))
 			lines, _ := reader.ReadString(byte('\n'))
@@ -44,60 +45,66 @@ func (r *cliredis) Connect() (string, error) {
 		conn.Close()
 	}
 
-	userdict := []string{""}
-	passdict := []string{"Passw0rd", "admin", "%user%", "%user%123", "%user%1234", "%user%123456", "%user%12345", "%user%@123", "%user%@123456", "%user%@12345", "%user%#123", "%user%#123456", "%user%#12345", "%user%_123", "%user%_123456", "%user%_12345", "%user%123!@#", "%user%!@#$", "%user%!@#", "%user%~!@", "%user%!@#123", "qweasdzxc", "%user%2017", "%user%2016", "%user%2015", "%user%@2017", "%user%@2016", "%user%@2015", "admin123", "admin888", "administrator", "administrator123", "root123", "123456", "password", "12345", "1234", "root", "123", "qwerty", "test", "1q2w3e4r", "1qaz2wsx", "qazwsx", "123qwe", "123qaz", "0000", "oracle", "1234567", "123456qwerty", "password123", "12345678", "1q2w3e", "abc123", "okmnji", "test123", "123456789", "q1w2e3r4", "user", "web"}
-	dict := make([]string, 0)
-	for i := 0; i < len(userdict); i++ {
-		for j := 0; j < len(passdict); j++ {
-			if !inintslice(dict, userdict[i]+":bufsnake:"+strings.Replace(passdict[j], "%user%", userdict[i], -1)) {
-				dict = append(dict, userdict[i]+":bufsnake:"+strings.Replace(passdict[j], "%user%", userdict[i], -1))
+	//usernames := []string{"admin", "redis", "root"}
+	usernames := []string{""}
+	passwords := []string{"Passw0rd", "admin", "%user%", "%user%123", "%user%1234", "%user%123456", "%user%12345", "%user%@123", "%user%@123456", "%user%@12345", "%user%#123", "%user%#123456", "%user%#12345", "%user%_123", "%user%_123456", "%user%_12345", "%user%123!@#", "%user%!@#$", "%user%!@#", "%user%~!@", "%user%!@#123", "qweasdzxc", "%user%2017", "%user%2016", "%user%2015", "%user%@2017", "%user%@2016", "%user%@2015", "admin123", "admin888", "administrator", "administrator123", "root123", "123456", "password", "12345", "1234", "root", "123", "qwerty", "test", "1q2w3e4r", "1qaz2wsx", "qazwsx", "123qwe", "123qaz", "0000", "oracle", "1234567", "123456qwerty", "password123", "12345678", "1q2w3e", "abc123", "okmnji", "test123", "123456789", "q1w2e3r4", "user", "web"}
+	wait := sync.WaitGroup{}
+	messages := make(chan message, 600)
+	fin := make(chan message)
+	for i := 0; i < 5; i++ {
+		wait.Add(1)
+		go r.check(&wait, messages, fin)
+	}
+	for _, u := range usernames {
+		for _, p := range passwords {
+			messages <- message{
+				user: u,
+				pass: p,
 			}
 		}
 	}
-	dictchan := make(chan string, 10)
-	dictlen := len(dict)
-	fin := make(chan string)
-	for i := 0; i < len(dict); i += 50 {
-		if i+50 > len(dict) {
-			go redisdict(dict[i:dictlen], dictchan)
-			break
+	go func() {
+		close(messages)
+		wait.Wait()
+		fin <- message{user: "error"}
+	}()
+	select {
+	case <-time.After(5 * time.Minute):
+		return "", errors.New("redis weak password test timeout")
+	case mess := <-fin:
+		if mess.user == "error" {
+			return "", errors.New("redis weak password test finish,but no password found")
 		}
-		go redisdict(dict[i:i+50], dictchan)
-	}
-	for i := 0; i < 5; i++ {
-		go redisconnect(dictchan, fin, r.ip, r.port)
-		<-time.After(1 * time.Second / 1000)
-	}
-	for i := 0; i < dictlen; i++ {
-		temp := <-fin
-		if temp != "" {
-			return "redis://" + temp + "@" + r.ip + ":" + r.port, nil
-		}
-	}
-	return "", errors.New("redis weak password test finish,but no password found")
-}
-
-func redisdict(dict []string, dictchan chan string) {
-	for i := 0; i < len(dict); i++ {
-		dictchan <- dict[i]
+		return "redis://" + mess.pass + "@" + r.ip + ":" + r.port, nil
 	}
 }
 
-func redisconnect(dictchan, fin chan string, host string, port string) {
-	for dict := range dictchan {
-		_ = strings.Split(dict, ":bufsnake:")[0]
-		password := strings.Split(dict, ":bufsnake:")[1]
-		c, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", host, port))
+func (r *redis_cli) check(wg *sync.WaitGroup, messages, fin chan message) {
+	defer wg.Done()
+	for message_ := range messages {
+		message_.pass = strings.ReplaceAll(message_.pass, "%user%", message_.user)
+		c, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", r.ip, r.port))
 		if err != nil {
-			fin <- ""
+			log.Println(err)
 			continue
 		}
-		defer c.Close()
-		_, err = c.Do("AUTH", password)
+		_, err = c.Do("AUTH", message_.pass)
+		//flag := true
+		//retry:
+		//	if flag {
+		//	} else {
+		//		_, err = c.Do("AUTH", message_.user, message_.pass)
+		//	}
 		if err != nil {
-			fin <- ""
+			//if flag && strings.Contains(err.Error(), "WRONGPASS invalid username-password pair or user is disabled.") {
+			//	flag = false
+			//	goto retry
+			//}
+			log.Println(err)
+			c.Close()
 			continue
 		}
-		fin <- password
+		c.Close()
+		fin <- message_
 	}
 }

@@ -17,6 +17,7 @@ import (
 // 192.167.113.159-192.168.114.254
 // 192.168.113.159-192.168.114.254
 func ParseIP(ip string) (startx uint32, endx uint32, err error) {
+	ip = strings.TrimSpace(ip)
 	if strings.Contains(ip, "-") {
 		if len(strings.Split(ip, "-")[1]) <= 3 {
 			return multipleip(ip)

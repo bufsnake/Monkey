@@ -1,44 +1,36 @@
 ## 简介
 
-> 基于nmap、masscan、go socket的端口扫描工具
+> 基于nmap、masscan的端口扫描工具
 
 ## 使用
+
 ```bash
-└> ./MonkeyX -h
-Local IP is [192.168.1.22 198.18.0.1] ,ulimit -n is 10240
-Usage of ./MonkeyX:
-  -b	whether to blast
-  -f string
-    	specify target ip from file
-  -m string
+$ sudo ./Monkey -h
+Linux: sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+Local IP is [192.168.67.74 198.18.0.1] ,ulimit -n is 10240
+内网扫描需要配置网关，网关IP为任意一台存活IP即可
+Usage of ./Monkey:
+  -blast
+    	blast service
+  -masscan-rate string
     	masscan rate (default "1000")
-  -n string
+  -nmap-sv string
     	nmap version intensity,optional 0~9 (default "2")
-  -np
-    	whether to ping scan ip alive
-  -p string
+  -port string
     	specify scan ports (default "0-65535")
-  -r int
-    	specify scan rate (default 6)
-  -st int
-    	socket port scan thread (default 200)
-  -t string
+  -target string
     	specify target ip
-  -um
-    	use masscan(IM: use in public network)
-  -w int
+  -targets string
+    	specify target ip from file
+  -thread int
+    	specify scan threads (default 6)
+  -timeout int
     	web request timeout (default 10)
 ```
 
-## 结果
+![image-20221215195216505](.images/image-20221215195216505.png)
 
-![image-20210324205705705](.images/image-20210324205705705.png)
-
-![image-20210324205753392](.images/image-20210324205753392.png)
-
-![image-20210324205817583](.images/image-20210324205817583.png)
-
-## TODO
+## 代办
 
 - [x] 端口扫描
 - [x] 指纹识别

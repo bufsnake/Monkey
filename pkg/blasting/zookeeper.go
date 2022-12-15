@@ -13,10 +13,10 @@ type zookeeper struct {
 	port string
 }
 
-// 方便判断是啥类型的漏洞
 func (s *zookeeper) Info() string {
 	return "unau"
 }
+
 func (z *zookeeper) Connect() (string, error) {
 	conn, err := net.DialTimeout("tcp", z.ip+":"+z.port, 3*time.Second)
 	if err != nil {

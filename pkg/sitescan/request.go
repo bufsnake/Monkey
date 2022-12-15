@@ -1,8 +1,9 @@
-package web
+package sitescan
 
 import (
 	"bytes"
 	"crypto/tls"
+	"github.com/bufsnake/Monkey/pkg/useragent"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"html"
@@ -14,17 +15,15 @@ import (
 )
 
 type request struct {
-	url          string
-	timeout      int
-	title        string
-	middleware   string
-	xpoweredby   string
-	code         int
-	length       int
-	header       map[string]string
-	body         string
-	product      string
-	product_rule string
+	url        string
+	timeout    int
+	title      string
+	middleware string
+	xpoweredby string
+	code       int
+	length     int
+	header     map[string]string
+	product    string
 }
 
 func (r *request) Run() error {
@@ -41,14 +40,14 @@ func (r *request) Run() error {
 			return http.ErrUseLastResponse
 		},
 	}
-	request, err := http.NewRequest("GET", r.url, nil)
+	req, err := http.NewRequest("GET", r.url, nil)
 	if err != nil {
 		return err
 	}
-	request.Header.Set("USER-AGENT", "xxxxx")
-	request.Header.Set("Connection", "close")
-	request.Header.Set("rememberMe", "xxxxxxxxxxxxxxx")
-	do, err := client.Do(request)
+	req.Header.Set("USER-AGENT", useragent.RandomUserAgent())
+	req.Header.Set("Connection", "close")
+	req.Header.Set("rememberMe", "xxxxxxxxxxxxxxx")
+	do, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -58,18 +57,12 @@ func (r *request) Run() error {
 		return err
 	}
 	r.length = len(body)
-	r.body = string(body)
 	r.code = do.StatusCode
-	r.title, err = extracttitle(r.body)
+	r.title, err = extracttitle(string(body))
 	if err != nil {
 		r.title = "None"
 	}
-	for i := 0; i < 3; i++ {
-		r.title = strings.TrimLeft(r.title, " ")
-		r.title = strings.TrimLeft(r.title, "\t")
-		r.title = strings.TrimRight(r.title, " ")
-		r.title = strings.TrimRight(r.title, "\t")
-	}
+	r.title = strings.Trim(r.title, " \t\r")
 	r.header = make(map[string]string)
 	for key, value := range do.Header {
 		val := ""
@@ -81,15 +74,6 @@ func (r *request) Run() error {
 	r.middleware = r.GetServer()
 	r.xpoweredby = r.GetXPoweredBy()
 	return nil
-}
-
-func (r *request) GetProduct() string {
-	// fingerprint
-	return r.product
-}
-
-func (r *request) GetProductRule() string {
-	return r.product_rule
 }
 
 func (r *request) GetHeader(key string) string {
@@ -119,10 +103,6 @@ func (r *request) GetCode() int {
 
 func (r *request) GetLength() int {
 	return r.length
-}
-
-func (r *request) GetBody() string {
-	return r.body
 }
 
 func (r *request) GetUrl() string {
@@ -163,14 +143,14 @@ func validUTF8(buf []byte) bool {
 					buf[i] <<= 1 //左移一位
 					nBytes++     //记录字符共占几个字节
 				}
-
+				
 				if nBytes < 2 || nBytes > 6 { //因为UTF8编码单字符最多不超过6个字节
 					return false
 				}
-
+				
 				nBytes-- //减掉首字节的一个计数
 			}
-		} else { //处理多字节字符
+		} else {                     //处理多字节字符
 			if buf[i]&0xc0 != 0x80 { //判断多字节后面的字节是否是10开头
 				return false
 			}
